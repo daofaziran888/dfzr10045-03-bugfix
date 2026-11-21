@@ -32,12 +32,13 @@ def record_audit_entry(
         创建的审计条目
     """
     audit_rows = store.rows("contract_audit")
+    today = datetime.now().strftime("%Y-%m-%d")
     duplicate_check = [
         a for a in audit_rows
         if a.get("所属契约") == contract_id
         and a.get("操作类型") == operation_type
         and a.get("变更后值") == after_value
-        and a.get("操作时间") == datetime.now().strftime("%Y-%m-%d")
+        and str(a.get("操作时间", "")).startswith(today)
     ]
     if duplicate_check:
         return {"status": "duplicate", "existing": duplicate_check[0]}

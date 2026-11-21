@@ -81,7 +81,7 @@ def escalate_breach(
 
     current_status = breach.get("status")
     if current_status == "已升级":
-        return {"status": "error", "message": "事件已处于升级状态，不能重复升级"}
+        return {"status": "error", "message": "事件已升级，不能重复升级"}
     if current_status not in ("处置中", "已登记"):
         return {"status": "error", "message": f"当前状态{current_status}不允许升级"}
 

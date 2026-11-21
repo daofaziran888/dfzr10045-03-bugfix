@@ -131,9 +131,11 @@ def _run_reconcile(
     rec_rows = store.rows("reconcile_task")
     new_id = max((int(r.get("id", 0)) for r in rec_rows), default=0) + 1
 
-    # 模拟对账：左右两侧来源比对
-    actual_left = expected_rows + max(0, expected_rows // 10 - 2)
-    actual_right = expected_rows - max(0, expected_rows // 20)
+    # 模拟对账：干净数据集平账，脏数据集引入差异
+    is_dirty = "dirty" in version_id.lower() or "dirty" in reconcile_id.lower()
+    noise = max(500, expected_rows // 20) if is_dirty else 0
+    actual_left = expected_rows + noise
+    actual_right = expected_rows
     matched = min(actual_left, actual_right)
     diff = max(actual_left, actual_right) - matched
 
