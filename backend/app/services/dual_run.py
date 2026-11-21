@@ -125,3 +125,15 @@ class DualRunService(BaseModuleService):
         """计算双跑比对收敛率百分比。"""
         total = consistent + divergent
         return consistent / max(total, 1) * 100.0
+
+
+def compare_and_finalize_calibers(reconcile_id: str, old_version: str, new_version: str,
+                                  old_rows: list[dict], new_rows: list[dict],
+                                  key_fields: list[str]) -> dict:
+    """模块级入口：比对新旧口径样本数据集并落库收敛结论。"""
+    service = DualRunService()
+    comparison = service.compare_samples(old_rows, new_rows, key_fields)
+    dual = service.build_dual_run(reconcile_id, old_version, new_version, comparison)
+    details = dual.pop("_divergent_details", [])
+    finalized = service.finalize(int(dual["id"]))
+    return {"dual": finalized.get("dual", dual), "comparison": comparison, "details": details}

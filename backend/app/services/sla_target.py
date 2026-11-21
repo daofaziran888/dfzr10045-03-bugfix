@@ -83,3 +83,11 @@ class SlaTargetService(BaseModuleService):
     def get_targets_for_contract(self, contract_id: str) -> list[dict[str, Any]]:
         """查询契约名下的全部等级目标数据集。"""
         return [r for r in store.rows(self.MODULE) if r.get("所属契约") == contract_id]
+
+
+def settle_contract_window(contract_id: str, samples: list[dict]) -> dict:
+    """模块级入口：按统计窗口结算契约全部等级目标并产出达成率数据集。"""
+    service = SlaTargetService()
+    results = service.settle_contract(contract_id, samples)
+    breached = [r for r in results if r.get("breached")]
+    return {"results": results, "breached_count": len(breached), "breached": breached}

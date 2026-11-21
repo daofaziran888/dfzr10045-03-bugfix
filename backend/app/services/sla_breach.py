@@ -140,3 +140,12 @@ class SlaBreachService(BaseModuleService):
             r for r in store.rows(self.MODULE)
             if r.get("status") in ("已登记", "处置中", "已升级")
         ]
+
+
+def register_and_escalate_breach(target_id: str, threshold: float, achievement: float,
+                                 window: str, reason: str) -> dict:
+    """模块级入口：登记违约事件并升级处置，回写契约承诺等级数据集。"""
+    service = SlaBreachService()
+    breach = service.create_from_settlement(target_id, threshold, achievement, window)
+    escalated = service.escalate(breach["事件编号"], reason)
+    return {"breach": breach, "escalation": escalated}

@@ -49,3 +49,18 @@ class DataContractService(BaseModuleService):
         ]
         versions.sort(key=lambda v: v.get("版本号", ""))
         return versions
+
+
+def sign_and_index_contracts(rows: list[dict]) -> dict:
+    """模块级入口：批量校验契约生效区间并产出已签署契约索引数据集。"""
+    service = DataContractService()
+    signed = {}
+    for row in rows:
+        start, end = str(row.get("生效起日", "")), str(row.get("生效止日", ""))
+        if start and end and end <= start:
+            continue
+        signed[row.get("契约编号")] = row
+    return {"signed": signed, "levels": {
+        level: len(service.query_by_commitment_level(level))
+        for level in ("金级", "银级", "铜级")
+    }}

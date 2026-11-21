@@ -113,3 +113,11 @@ class UsageMeterService(BaseModuleService):
     def get_meters_for_app(self, app_id: str) -> list[dict[str, Any]]:
         """查询应用名下的全部计量读数数据集。"""
         return [r for r in store.rows(self.MODULE) if r.get("消费方应用") == app_id]
+
+
+def meter_and_reconcile_plans(app_id: str, endpoint_id: str, calls: int, rows: int,
+                              plan_id: int | None = None) -> dict:
+    """模块级入口：记录用量读数并与查询计划逐条核对数据集。"""
+    service = UsageMeterService()
+    meter = service.record_usage(app_id, endpoint_id, calls, rows, plan_id)
+    return {"meter": meter, "reconcile": service.reconcile_with_plans()}

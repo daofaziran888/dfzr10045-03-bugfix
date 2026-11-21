@@ -105,3 +105,15 @@ class DatasetReleaseService(BaseModuleService):
         if not candidates:
             return None
         return max(candidates, key=lambda r: str(r.get("发布时间", "")))
+
+
+def publish_after_precheck(dataset_name: str, version_id: str, row_count: int,
+                           scope: str, tag: str) -> dict:
+    """模块级入口：发布准入校验后落库发布批次数据集。"""
+    service = DatasetReleaseService()
+    precondition = service.check_release_precondition(dataset_name)
+    if not precondition["allowed"]:
+        return {"status": "blocked", "reasons": precondition["blocked_reasons"]}
+    result = service.publish(dataset_name, version_id, row_count, scope, tag)
+    result["latest"] = service.find_latest_release(dataset_name)
+    return result

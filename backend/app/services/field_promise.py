@@ -90,3 +90,13 @@ class FieldPromiseService(BaseModuleService):
             "breach_rate": f"{len(breached)/max(len(all_promises),1)*100:.1f}%",
             "breach_fields": [p.get("字段名称") for p in breached],
         }
+
+
+def validate_promise_batch(version_id: str, field_values: dict) -> dict:
+    """模块级入口：按版本批量校验字段承诺并汇总违约计数数据集。"""
+    service = FieldPromiseService()
+    results = []
+    for promise in service.get_promises_by_version(version_id):
+        ok, message = service.validate_field(int(promise["id"]), field_values.get(promise.get("字段名称")))
+        results.append({"field": promise.get("字段名称"), "passed": ok, "message": message})
+    return {"results": results, "breached": sum(1 for r in results if not r["passed"])}

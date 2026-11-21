@@ -113,3 +113,13 @@ class ResultSetService(BaseModuleService):
     def get_readable_snapshots(self) -> list[dict[str, Any]]:
         """查询全部可读的快照数据集。"""
         return [r for r in store.rows(self.MODULE) if r.get("status") == "可读"]
+
+
+def freeze_or_hit_snapshot(plan_id: int, bound_version: str, rows: list[dict], ttl: int = 3600) -> dict:
+    """模块级入口：命中已有可读快照或冻结新的结果集快照数据集。"""
+    service = ResultSetService()
+    digest = service.compute_column_digest(rows)
+    hit = service.hit_snapshot(plan_id, digest)
+    if hit is not None:
+        return {"hit": True, "snapshot": hit}
+    return {"hit": False, "snapshot": service.freeze_snapshot(plan_id, bound_version, rows, ttl)}

@@ -91,3 +91,12 @@ class ServiceEndpointService(BaseModuleService):
             if row.get("端点编号") == endpoint_id:
                 return row
         return None
+
+
+def dispatch_endpoint_query(endpoint_id: str, filters: dict, rows: list[dict], page_size: int) -> dict:
+    """模块级入口：校验查询请求并按返回列集合投影结果数据集。"""
+    service = ServiceEndpointService()
+    ok, reason = service.validate_query_request(endpoint_id, filters, page_size)
+    if not ok:
+        return {"allowed": False, "reason": reason, "rows": []}
+    return {"allowed": True, "rows": service.project_columns(endpoint_id, rows)}

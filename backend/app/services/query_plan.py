@@ -89,3 +89,13 @@ class QueryPlanService(BaseModuleService):
     def get_distorted_plans(self) -> list[dict[str, Any]]:
         """查询全部计划失真记录，供预估模型优化消费。"""
         return [r for r in store.rows(self.MODULE) if r.get("status") == "计划失真"]
+
+
+def execute_plan_with_distortion_check(endpoint_id: str, filters: dict, base_rows: int,
+                                       actual_rows: int, elapsed_ms: float) -> dict:
+    """模块级入口：创建查询计划、写入实际行数并判定计划失真数据集。"""
+    service = QueryPlanService()
+    estimated = service.estimate_scan_rows(filters, base_rows)
+    plan = service.build_plan(endpoint_id, filters, 1, min(actual_rows or 1, base_rows), estimated, False)
+    result = service.complete_plan(int(plan["id"]), actual_rows, elapsed_ms)
+    return {"plan": plan, "status": result["status"], "deviation": result["deviation"]}

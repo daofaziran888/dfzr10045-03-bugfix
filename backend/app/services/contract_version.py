@@ -100,3 +100,12 @@ class ContractVersionService(BaseModuleService):
     def get_active_versions_for(self, contract_id: str) -> list[dict[str, Any]]:
         """获取契约的活跃版本列表（含过渡中版本）。"""
         return self.readable_versions(contract_id)
+
+
+def resolve_readable_versions(contract_id: str, bound_version: str) -> dict:
+    """模块级入口：读取契约可取数的版本数据集并解析绑定版本明细。"""
+    service = ContractVersionService()
+    return {
+        "readable": service.readable_versions(contract_id),
+        "bound": service.resolve_bound_version(contract_id, bound_version),
+    }

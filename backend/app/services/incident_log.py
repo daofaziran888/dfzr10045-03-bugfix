@@ -103,3 +103,13 @@ class IncidentLogService(BaseModuleService):
     def get_incidents_for_endpoint(self, endpoint_id: str) -> list[dict[str, Any]]:
         """查询端点名下的全部服务事件数据集。"""
         return [r for r in store.rows(self.MODULE) if r.get("所属端点") == endpoint_id]
+
+
+def open_recover_incident(endpoint_id: str, category: str, affected: int,
+                          recovery: str, minutes: int) -> dict:
+    """模块级入口：登记服务事件、确认恢复并产出SLA结算样本数据集。"""
+    service = IncidentLogService()
+    incident = service.open_incident(endpoint_id, category, affected)
+    recovered = service.recover(incident["事件编号"], recovery, minutes)
+    samples = service.build_sla_samples(endpoint_id, incident["事件时间"][:10])
+    return {"incident": incident, "recovered": recovered, "sla_samples": samples}

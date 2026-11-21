@@ -184,3 +184,17 @@ class ReconcileTaskService(BaseModuleService):
             r for r in store.rows(self.MODULE)
             if r.get("status") == "存在差异"
         ]
+
+
+def reconcile_and_register_diff(reconcile_id: str, left_source: str, right_source: str,
+                                left_rows: list[dict], right_rows: list[dict],
+                                key_fields: list[str]) -> dict:
+    """模块级入口：逐行对账两侧来源数据集并登记差异批次。"""
+    service = ReconcileTaskService()
+    record = service.build_reconcile_record(
+        reconcile_id=reconcile_id, left_source=left_source, right_source=right_source,
+        left_rows=left_rows, right_rows=right_rows, key_fields=key_fields,
+    )
+    diff_details = record.pop("_diff_details", [])
+    registered = service.register_diff(reconcile_id, diff_details) if diff_details else {}
+    return {"record": record, "registered": registered, "diff_details": diff_details}

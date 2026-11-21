@@ -99,3 +99,16 @@ class CachePolicyService(BaseModuleService):
             if r.get("所属端点") == endpoint_id and r.get("status") == "已生效":
                 return r
         return None
+
+
+def serve_with_cache(endpoint_id: str, key_fields: dict, cache: dict, loader) -> dict:
+    """模块级入口：按缓存键构成命中或回源加载结果数据集并更新命中率指标。"""
+    service = CachePolicyService()
+    key = service.build_cache_key(endpoint_id, key_fields)
+    cached = service.lookup(cache, key)
+    if cached is not None:
+        service.record_access(endpoint_id, cache, key, cached, hit=True)
+        return {"hit": True, "payload": cached}
+    payload = loader()
+    service.record_access(endpoint_id, cache, key, payload, hit=False)
+    return {"hit": False, "payload": payload}

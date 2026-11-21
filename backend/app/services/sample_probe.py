@@ -97,3 +97,12 @@ class SampleProbeService(BaseModuleService):
     def get_probes_for_dataset(self, dataset_name: str) -> list[dict[str, Any]]:
         """查询数据集名下的全部探查样本数据集。"""
         return [r for r in store.rows(self.MODULE) if r.get("所属数据集") == dataset_name]
+
+
+def probe_dataset_sample(dataset_name: str, rows: list[dict], ratio: float,
+                         required_fields: list[str] | None = None) -> dict:
+    """模块级入口：抽样探查数据集并落库探查结论。"""
+    service = SampleProbeService()
+    result = service.probe_rows(dataset_name, rows, ratio, required_fields)
+    record = service.build_probe_record(dataset_name, ratio, result)
+    return {"result": result, "record": record}

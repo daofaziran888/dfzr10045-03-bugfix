@@ -90,3 +90,14 @@ class FreshnessTrackService(BaseModuleService):
             if r.get("status") in ("轻微滞后", "严重滞后"):
                 lagging.add(str(r.get("所属契约", "")))
         return sorted(lagging)
+
+
+def track_contract_freshness(contract_id: str, promised: int, actual: int, water_level: str) -> dict:
+    """模块级入口：记录新鲜度读数并汇总契约滞后批次数据集。"""
+    service = FreshnessTrackService()
+    reading = service.track_reading(contract_id, promised, actual, water_level)
+    return {
+        "reading": reading,
+        "lag_ratio": round(actual / max(promised, 1), 2),
+        "lagging_contracts": service.get_lagging_contracts(),
+    }

@@ -94,3 +94,15 @@ class SubscriptionPlanService(BaseModuleService):
                 row["abnormal"] = True
                 suspended += 1
         return suspended
+
+
+def resolve_subscription_read_scope(app_id: str, contract_id: str, requested_rows: int) -> dict:
+    """模块级入口：解析订阅可读版本数据集并校验取数配额上限。"""
+    service = SubscriptionPlanService()
+    version = service.resolve_readable_version(app_id, contract_id)
+    subs = service.get_subs_for_app(app_id)
+    sub_id = next((str(s["id"]) for s in subs if s.get("订阅版本") == version), "")
+    return {
+        "readable_version": version,
+        "quota": service.check_quota_ceiling(sub_id, requested_rows) if sub_id else {},
+    }

@@ -112,3 +112,10 @@ class RateQuotaService(BaseModuleService):
     def get_quota_for_app(self, app_id: str) -> list[dict[str, Any]]:
         """查询应用名下的全部配额条目数据集。"""
         return [r for r in store.rows(self.MODULE) if r.get("消费方应用") == app_id]
+
+
+def admit_request_with_window_reset(app_id: str, endpoint_id: str, window: str) -> dict:
+    """模块级入口：滚动计量窗口后消费配额并返回降级处置数据集。"""
+    service = RateQuotaService()
+    service.reset_window(app_id, endpoint_id, window)
+    return service.consume_quota(app_id, endpoint_id)

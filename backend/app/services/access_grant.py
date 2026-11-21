@@ -134,3 +134,11 @@ class AccessGrantService(BaseModuleService):
     def get_grants_for_app(self, app_id: str) -> list[dict[str, Any]]:
         """查询应用名下的全部授权记录数据集。"""
         return [r for r in store.rows(self.MODULE) if r.get("消费方应用") == app_id]
+
+
+def authorize_and_check_access(app_id: str, endpoint_id: str, columns: list[str],
+                               row_filter: str, start: str, end: str, today: str) -> dict:
+    """模块级入口：写入授权记录并立即核验取数权限数据集。"""
+    service = AccessGrantService()
+    grant = service.authorize(app_id, endpoint_id, columns, row_filter, start, end)
+    return {"grant": grant, "access": service.check_access(app_id, endpoint_id, today)}

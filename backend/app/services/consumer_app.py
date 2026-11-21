@@ -113,3 +113,12 @@ class ConsumerAppService(BaseModuleService):
             if row.get("应用编号") == app_id:
                 return row
         return None
+
+
+def onboard_app_with_quota(app_id: str, app_name: str, team: str, peak: int) -> dict:
+    """模块级入口：接入消费方应用并同步初始化限流配额条目数据集。"""
+    service = ConsumerAppService()
+    registered = service.register_app_with_quota(app_id, app_name, team, "API", peak)
+    service.refresh_call_watermark(app_id)
+    registered["bound_contracts"] = service.count_bound_contracts(app_id)
+    return registered

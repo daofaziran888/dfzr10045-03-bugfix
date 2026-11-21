@@ -113,3 +113,12 @@ class ContractAuditService(BaseModuleService):
             [r for r in store.rows(self.MODULE) if r.get("所属契约") == contract_id],
             key=lambda r: str(r.get("操作时间", "")),
         )
+
+
+def record_and_verify_contract_chain(contract_id: str, operation: str, target: str,
+                                     before: str, after: str, operator: str) -> dict:
+    """模块级入口：登记契约变更并核查审计链完整性数据集。"""
+    service = ContractAuditService()
+    recorded = service.record_change(contract_id, operation, target, before, after, operator)
+    verification = service.verify_chain(contract_id)
+    return {"recorded": recorded, "verification": verification}

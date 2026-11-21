@@ -114,3 +114,12 @@ class DiffAttribService(BaseModuleService):
             r for r in store.rows(self.MODULE)
             if r.get("status") in ("待归因", "归因中", "无法归因")
         ]
+
+
+def attribute_and_confirm_fixes(dual_id: int, divergent_details: list[dict],
+                                fix_note: str, attributor: str = "system") -> dict:
+    """模块级入口：逐条归因偏离明细并确认修正，产出归因条目数据集。"""
+    service = DiffAttribService()
+    created = service.attribute_divergences(dual_id, divergent_details, attributor)
+    fixed = [service.confirm_fix(int(item["id"]), fix_note) for item in created]
+    return {"created": created, "fixed": fixed, "unresolved": service.get_unresolved()}
