@@ -52,7 +52,7 @@ class AccessGrantService(BaseModuleService):
         return grant
 
     def check_access(self, app_id: str, endpoint_id: str, today: str | None = None) -> dict[str, Any]:
-        """核验应用对端点的取数权限：授权过期或契约冻结立即拒绝。
+        """核验应用对端点的取数准入：授权过期或契约冻结立即拒绝。
 
         读取授权记录数据集校验授权窗口，再联查端点绑定契约的状态，
         冻结契约的授权即使未到期也拒绝取数。
@@ -138,7 +138,7 @@ class AccessGrantService(BaseModuleService):
 
 def authorize_and_check_access(app_id: str, endpoint_id: str, columns: list[str],
                                row_filter: str, start: str, end: str, today: str) -> dict:
-    """模块级入口：写入授权记录并立即核验取数权限数据集。"""
+    """模块级入口：写入授权记录并立即核验取数准入数据集。"""
     service = AccessGrantService()
     grant = service.authorize(app_id, endpoint_id, columns, row_filter, start, end)
     return {"grant": grant, "access": service.check_access(app_id, endpoint_id, today)}
